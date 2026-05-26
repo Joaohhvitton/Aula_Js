@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sistema de Chamada Hospitalar — MedCall</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script charset="UTF-8" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=6X_B1mtfWQHf4wORNHWzpnbFlO2cpOdT6QhcUiI1wKezn7Do0onhuMvWoxblDAhNZxyBMeTAi7D4pHkinYsmxSoj_kV_N55haYdZa78T7zedeI71dNOLz63UikiQzHzZX_QpDp1octiVKoUOOtRNLQbA5crWXxcjLt2BHmZW8YN8dtyQtcQ_iDmvwYK6AoFSyGvYW5kNvbPhaRqBbj02eQZaGQB8CVXt8HRvLz1shYXCQUcnb8tgP4sxd6C_DNMPTzAI3iFxlFawHWy8cQOtE2_g9-hbkUJQ14Wv_qvcKWPuTNxQW8F0TJzYv6cw-Rxf" type="text/javascript"></script>
+<link href="styles.css" rel="stylesheet"/></head>
+<body>
+<!-- MENU LATERAL DE ACORDO COM A DOCUMENTAÇÃO -->
+<aside class="sidebar" id="sidebar">
+<div class="brand">
+<div class="brand-icon">🏥</div>
+<div class="brand-name">
+      MedCall
+      <span>Painel do Paciente</span>
+</div>
+</div>
+<nav class="menu-nav">
+<button class="menu-btn active" onclick="navigate('dashboard', this)">
+<span class="menu-btn-icon">📊</span> Painel Principal
+    </button>
+<button class="menu-btn" onclick="navigate('agendamentos', this)">
+<span class="menu-btn-icon">📅</span> Meus Agendamentos
+    </button>
+<button class="menu-btn" onclick="navigate('exames', this)">
+<span class="menu-btn-icon">🧪</span> Meus Exames
+    </button>
+<button class="menu-btn" onclick="navigate('tratamento', this)">
+<span class="menu-btn-icon">📈</span> Tratamento
+    </button>
+<button class="menu-btn" onclick="navigate('mensagens', this)">
+<span class="menu-btn-icon">💬</span> Mensagens
+    </button>
+<button class="menu-btn" onclick="navigate('ajuda', this)">
+<span class="menu-btn-icon">❓</span> Ajuda
+    </button>
+</nav>
+</aside>
+<!-- ENVOLTÓRIO PRINCIPAL -->
+<div class="wrapper">
+<!-- HEADER REQUISITADO -->
+<header class="header">
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<div id="viewIndicator" style="font-weight: 600; font-size: 15px; color: var(--text-muted);">Painel Principal</div>
+<div class="header-right">
+<div class="date-display" id="dateDisplay">—</div>
+<div class="clock" id="clock">00:00</div>
+<div class="pulse-dot"></div>
+</div>
+</header>
+<!-- CONTÊINER DE TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+<!-- CONTEÚDO PRINCIPAL (DASHBOARD DINÂMICO) -->
+<main class="main-content">
+<!-- 1. PAINEL PRINCIPAL / DASHBOARD -->
+<div class="view active" id="view-dashboard">
+<div class="view-title">Bem-vindo ao MedCall</div>
+<div class="view-subtitle">Acompanhe seu fluxo de atendimento e histórico clínico em tempo real.</div>
+<!-- CARDS DE RESUMO (Métricas dinâmicas) -->
+<div class="stats-grid">
+<div class="stat-card teal">
+<div class="stat-label">Consultas Hoje</div>
+<div class="stat-value" id="stat-consultas">0</div>
+<div class="stat-desc">Agendadas na grade</div>
+</div>
+<div class="stat-card blue">
+<div class="stat-label">Exames Concluídos</div>
+<div class="stat-value" id="stat-exames">0</div>
+<div class="stat-desc">Prontos para download</div>
+</div>
+<div class="stat-card amber">
+<div class="stat-label">Recuperação</div>
+<div class="stat-value" id="stat-progresso">0%</div>
+<div class="stat-desc">Progresso do tratamento</div>
+</div>
+<div class="stat-card teal">
+<div class="stat-label">Mensagens</div>
+<div class="stat-value">2</div>
+<div class="stat-desc">Avisos da equipe médica</div>
+</div>
+</div>
+<!-- GRID PRINCIPAL DO PROJETO -->
+<div class="dashboard-grid" id="chamadaDisplayArea">
+<!-- Esquerda: Painel Virtual de Chamadas -->
+<div class="panel-section">
+<div class="section-title">Painel Virtual de Chamada</div>
+<div class="chamada-atual-box">
+<div class="chamada-tag" id="displayStatusTag">Status: Aguardando Fila</div>
+<div class="chamada-numero" id="displayNumero">---</div>
+<div class="chamada-nome" id="displayNome">Carregando Fila...</div>
+<div class="chamada-sub" id="displayMedicoSala">—</div>
+</div>
+<button class="action-btn" onclick="simularChamada()">⟶ Simular Próxima Chamada (JS)</button>
+<button class="action-btn secondary" onclick="resetarSimulacao()">↺ Reiniciar Fluxo de Atendimento</button>
+</div>
+<!-- Direita: Próximos na Grade / Chamadas Recentes -->
+<div class="panel-section">
+<div class="section-title">Grade de Chamadas Recentes</div>
+<div class="items-list" id="recentesFila">
+<!-- Injetado Dinamicamente com JS -->
+</div>
+</div>
+</div>
+</div>
+<!-- 2. MEUS AGENDAMENTOS -->
+<div class="view" id="view-agendamentos">
+<div class="view-title">Meus Agendamentos</div>
+<div class="view-subtitle">Veja os detalhes das suas consultas do dia, profissionais e status.</div>
+<div class="table-wrap">
+<div class="table-responsive">
+<table>
+<thead>
+<tr>
+<th>Senha</th>
+<th>Médico</th>
+<th>Especialidade</th>
+<th>Sala de Destino</th>
+<th>Status da Consulta</th>
+</tr>
+</thead>
+<tbody id="tabelaAgendamentos">
+<!-- JS Injetará aqui -->
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- 3. MEUS EXAMES -->
+<div class="view" id="view-exames">
+<div class="view-title">Resultados de Exames</div>
+<div class="view-subtitle">Exames laboratoriais e de imagem realizados com liberação digital.</div>
+<div class="table-wrap">
+<div class="table-responsive">
+<table>
+<thead>
+<tr>
+<th>Tipo de Exame</th>
+<th>Laboratório / Médico</th>
+<th>Data de Liberação</th>
+<th>Status</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="tabelaExames">
+<!-- JS Injetará aqui -->
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- 4. EVOLUÇÃO DO TRATAMENTO -->
+<div class="view" id="view-tratamento">
+<div class="view-title">Evolução do Tratamento</div>
+<div class="view-subtitle">Gráfico interativo simulando seu percentual de recuperação.</div>
+<div class="dashboard-grid">
+<div class="progress-section">
+<div class="circle-chart">
+<svg viewbox="0 0 160 160">
+<lineargradient id="gradientTeal" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#0f766e"></stop>
+<stop offset="100%" stop-color="#0d9488"></stop>
+</lineargradient>
+<circle class="circle-bg" cx="80" cy="80" r="70"></circle>
+<circle class="circle-fill" cx="80" cy="80" id="circleFillBar" r="70"></circle>
+</svg>
+<div class="circle-percentage">
+<span class="num" id="circlePercentageNum">0%</span>
+<span class="lbl">Recuperação</span>
+</div>
+</div>
+<button class="action-btn" onclick="simularTratamento()" style="max-width: 250px; margin: 0 auto;">Simular Progresso (+)</button>
+</div>
+<div class="panel-section">
+<div class="section-title">Mensagem de Acompanhamento</div>
+<div class="treatment-card">
+<p class="treatment-msg" id="treatmentMsg">Seu plano de cuidados está ativo. Continue seguindo as orientações médicas e medicações prescritas para otimizar sua curva de melhora clínica.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. MENSAGENS -->
+<div class="view" id="view-mensagens">
+<div class="view-title">Mensagens Interativas</div>
+<div class="view-subtitle">Canal interno de avisos automáticos e contato com a recepção hospitalar.</div>
+<div class="items-list">
+<div class="list-item">
+<div class="item-avatar">📩</div>
+<div class="item-main">
+<div class="item-title">Recepção Central: Confirmação de Presença</div>
+<div class="item-details">Sua triagem foi concluída com sucesso. Por favor, aguarde no saguão principal até que sua senha seja anunciada no painel.</div>
+</div>
+</div>
+<div class="list-item">
+<div class="item-avatar">🩺</div>
+<div class="item-main">
+<div class="item-title">Dr. Carlos Mendes: Preparação para Exame</div>
+<div class="item-details">Lembre-se de apresentar o documento com foto original na sala de exames laboratoriais.</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 6. AJUDA -->
+<div class="view" id="view-ajuda">
+<div class="view-title">Ajuda e Suporte ao Sistema</div>
+<div class="view-subtitle">Esclareça suas dúvidas frequentes sobre o funcionamento do painel digital do paciente.</div>
+<div class="panel-section" style="display:flex; flex-direction:column; gap:16px;">
+<div>
+<h4 style="margin-bottom:4px; color:var(--accent);">Como funciona a simulação de chamada?</h4>
+<p style="font-size:13px; color:var(--text-muted); line-height:1.4;">Ao clicar no botão "Simular Próxima Chamada" na aba principal, o JavaScript atualizará dinamicamente o status do paciente na fila, alterando de 'Aguardando' para 'Chamando' (com aviso sonoro) e depois estabilizando em 'Em atendimento'.</p>
+</div>
+<div>
+<h4 style="margin-bottom:4px; color:var(--accent);">Os resultados de exames podem ser baixados?</h4>
+<p style="font-size:13px; color:var(--text-muted); line-height:1.4;">Sim! Na aba "Meus Exames", qualquer exame listado com o status 'Disponível' terá uma ação em JS para realizar a simulação do download do arquivo PDF correspondente.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- DEFINIÇÕES DO JAVASCRIPT REQUISITADO -->
+
+<script src="js/script.js"></script></body>
+</html>
